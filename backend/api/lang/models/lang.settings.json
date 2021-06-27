@@ -1,0 +1,28 @@
+{
+  "kind": "collectionType",
+  "collectionName": "langs",
+  "info": {
+    "name": "lang",
+    "description": ""
+  },
+  "options": {
+    "increments": true,
+    "timestamps": true,
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "lang_abbr": {
+      "type": "string"
+    },
+    "navigation_links": {
+      "collection": "navigation-link"
+    },
+    "categories": {
+      "collection": "category"
+    },
+    "dictionary": {
+      "type": "json"
+    }
+  }
+}

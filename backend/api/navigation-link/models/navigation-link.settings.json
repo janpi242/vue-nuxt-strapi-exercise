@@ -1,0 +1,22 @@
+{
+  "kind": "collectionType",
+  "collectionName": "navigation_links",
+  "info": {
+    "name": "navigation_link",
+    "description": ""
+  },
+  "options": {
+    "increments": true,
+    "timestamps": true,
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "label": {
+      "type": "string"
+    },
+    "url": {
+      "type": "string"
+    }
+  }
+}
