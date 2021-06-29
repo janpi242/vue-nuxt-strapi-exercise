@@ -15,10 +15,20 @@
           class="col-12 col-sm-6 col-md-4 col-lg-3 mb-4"
         >
           <div class="p-2 bg-light h-100">
-            {{ category.name }}
-            <div v-for="link in category.links" :key="link.id">
-              <a :href="link.url">{{ link.name }}</a>
+            <div class="display-flex pl-3 pb-2">
+              <img
+                width="24"
+                height="24"
+                :src="category.icon_url"
+                class="mr-2"
+              />
+              <span class="category-name">{{ category.name }}</span>
             </div>
+            <ul class="">
+              <li v-for="link in category.links" :key="link.id">
+                <a :href="link.url">{{ link.name }}</a>
+              </li>
+            </ul>
           </div>
         </div>
       </div>
@@ -38,9 +48,6 @@ export default {
     }
   },
   computed: {
-    selectedLang() {
-      return this.$store.state.selectedLang
-    },
     categories() {
       if (this.searchText.length <= 3 && !this.runFilterAnyway) {
         return this.$store.getters.categoriesByCurrLang
@@ -107,3 +114,11 @@ export default {
   },
 }
 </script>
+
+<style lang="scss">
+.category-name {
+  line-height: 24px;
+  position: relative;
+  top: 2px;
+}
+</style>

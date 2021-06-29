@@ -24,4 +24,7 @@ Backend is Strapi.
 
     `npm run dev`
 
-You will find other commands and db access data in both directories' readme files.
+You will find other commands and db access data in both directories' readme files.  
+  
+## Icons:
+<div>Icons made by <a href="https://www.flaticon.com/authors/smashicons" title="Smashicons">Smashicons</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>

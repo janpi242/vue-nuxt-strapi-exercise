@@ -12,21 +12,54 @@
         No succes with data loading. Retry in {{ seconds }}s.
       </div>
     </div>
-    <div class="container-fluid h-100 d-flex flex-column">
-      <!-- TODO: header(top row) should be component to simplify this file-->
-      <div class="row">
-        <div class="col-3 align-self-center">
+    <!-- TODO: header(top row) should be component to simplify this file-->
+    <div
+      class="
+        viewport
+        container-fluid
+        h-100
+        d-flex
+        flex-column
+        position-relative
+      "
+      :class="menuOpened ? 'no-scroll' : ''"
+    >
+      <div class="row d-sm-none mobile-navigation-bar">
+        <div class="col-12 py-2 d-flex justify-content-between">
+          <lang-selector />
+          <img
+            src="more-1.svg"
+            width="24"
+            height="24"
+            @click="menuOpened = true"
+          />
+        </div>
+      </div>
+      <div class="row navigation-bar" :class="menuOpened ? 'opened' : ''">
+        <div class="col-12 col-sm-3 align-self-center">
           <h2 class="mb-0">Intranet</h2>
         </div>
-        <div class="col-6 justify-content-start align-self-center">
+        <div class="col-12 col-sm-6 justify-content-start align-self-center">
           <ul class="navigation mb-0 p-0">
-            <li v-for="item in navItems" :key="item.id">
+            <li
+              v-for="item in navItems"
+              :key="item.id"
+              @click="menuOpened = false"
+            >
               <NuxtLink :to="item.url">{{ item.label }}</NuxtLink>
             </li>
           </ul>
         </div>
-        <div class="col-3 text-right align-self-center">
+        <div class="col-12 col-sm-3 text-right align-self-center">
           <search-box />
+        </div>
+        <div class="d-sm-none position-absolute close-button">
+          <img
+            src="multiply.svg"
+            width="24"
+            height="24"
+            @click="menuOpened = false"
+          />
         </div>
       </div>
       <div class="row main-container flex-grow-1">
@@ -34,57 +67,29 @@
           <Nuxt />
         </div>
       </div>
-      <div class="footer">
-        <!-- TODO: footer should be component to simplify this file-->
-        <div class="row">
-          <div class="col-10">{{ footerText }}</div>
-          <div class="col-2 text-right">
-            <select v-model="selectedLang">
-              <option
-                v-for="(lang, index) in langAbbrs"
-                :key="index"
-                :value="lang"
-              >
-                {{ lang }}
-              </option>
-            </select>
-          </div>
-        </div>
-      </div>
+      <app-footer />
     </div>
   </div>
 </template>
 
 <script>
 import searchBox from './../components/searchBox.vue'
+import appFooter from './../components/appFooter.vue'
+import LangSelector from '~/components/langSelector.vue'
 export default {
-  components: { searchBox },
+  components: { searchBox, appFooter, LangSelector },
   data() {
     return {
-      langData: [],
       loaded: false,
       loadingError: '',
-      langAbbrs: [],
       seconds: 5,
       countdown: null,
+      menuOpened: false,
     }
   },
   computed: {
     navItems() {
-      return this.loaded && this.selectedLang
-        ? this.getLangByAbbr(this.selectedLang).navigation_links
-        : {}
-    },
-    footerText() {
-      return this.$store.state.dictionary.footer
-    },
-    selectedLang: {
-      get() {
-        return this.$store.state.selectedLang
-      },
-      set(newLangAbbr) {
-        this.$store.commit('selectLang', newLangAbbr)
-      },
+      return this.$store.state.currLang.navigation_links
     },
   },
   watch: {
@@ -96,33 +101,19 @@ export default {
         this.getLangData()
       }
     },
-    selectedLang(val) {
-      const dictionary = this.getLangByAbbr(val).dictionary
-      this.$store.commit('setDictionary', dictionary)
-      const categoryIds = this.getLangByAbbr(val).categories.map(
-        (cat) => cat.id
-      )
-      this.$store.commit('storeCategoryIds', categoryIds)
-    },
   },
   created() {
     this.getLangData()
   },
   methods: {
-    getLangByAbbr(abbr) {
-      return this.langData.find((lang) => lang.lang_abbr === abbr)
-    },
     getLangData() {
       this.$axios
         .get('/langs')
         .then(({ data }) => {
-          this.langData = data
-          this.langAbbrs = data.map((lang) => lang.lang_abbr)
+          this.$store.commit('storeLangs', data)
+          const langAbbrs = data.map((lang) => lang.lang_abbr)
+          this.$store.commit('selectLang', langAbbrs[0])
           this.loaded = true
-          this.$store.commit('setDictionary', data[0].dictionary)
-          this.$store.commit('selectLang', this.langAbbrs[0])
-          const categoryIds = data[0].categories.map((cat) => cat.id)
-          this.$store.commit('storeCategoryIds', categoryIds)
         })
         .catch(() => {
           this.loadingError = true
@@ -163,6 +154,10 @@ div#__nuxt,
   height: 100%;
 }
 
+body {
+  overflow-x: hidden;
+}
+
 a:hover {
   text-decoration: none;
   border-bottom: 2px solid lightblue;
@@ -170,6 +165,11 @@ a:hover {
 
 .nuxt-link-exact-active {
   border-bottom: 2px solid blue;
+}
+
+.no-scroll {
+  overflow-y: hidden;
+  position: fixed;
 }
 
 .screen-center {
@@ -181,19 +181,88 @@ a:hover {
   background-color: white;
   justify-content: center;
   align-items: center;
-  z-index: 1;
+  z-index: 40;
 }
-.navigation {
-  list-style: none;
-  li {
-    display: inline-block;
-    &:not(:last-child) {
-      margin-right: 15px;
-    }
+
+.viewport {
+  overflow-x: hidden;
+}
+.mobile-navigation-bar {
+  background-color: white;
+  // many cons to use sticky, js would be better
+  position: sticky;
+  top: 0;
+  z-index: 15;
+  select {
+    position: relative;
+    top: 1px;
   }
+}
+
+.navigation-bar {
+  position: fixed;
+  flex-direction: column;
+  justify-content: flex-start;
+  width: 100%;
+  height: 100%;
+  z-index: 30;
+  background-color: white;
+  right: -100%;
+  transition: right 0.25s linear;
+  .col-12 {
+    flex: initial;
+  }
+  h2 {
+    text-align: center;
+  }
+  &.opened {
+    right: calc(0% + 15px);
+  }
+}
+
+.close-button {
+  top: 0.375rem;
+  right: 0.375rem;
 }
 
 .main-container {
   background-color: lightgray;
+}
+
+.navigation {
+  list-style: none;
+  li {
+    text-align: center;
+    padding: 8px 0;
+    &:not(:last-child) {
+      border-bottom: 1px solid #eee;
+    }
+  }
+}
+
+@media screen and (min-width: 576px) {
+  .navigation-bar {
+    position: relative;
+    width: auto;
+    height: auto;
+    flex-direction: row;
+    right: 0% !important;
+    .col-12 {
+      flex: 0 0 100%;
+    }
+    h2 {
+      text-align: left;
+    }
+    .navigation {
+      li {
+        display: inline-block;
+        padding: initial;
+        border-bottom: none;
+        &:not(:last-child) {
+          margin-right: 15px;
+        }
+      }
+    }
+  }
 }
 </style>

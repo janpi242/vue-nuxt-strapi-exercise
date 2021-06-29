@@ -28,7 +28,6 @@ export default {
 
 <style lang="scss">
 .search-input {
-  right: 0.25rem;
   position: relative;
   padding-right: 1.7rem;
   border-color: darkgray;
