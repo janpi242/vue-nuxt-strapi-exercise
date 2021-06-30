@@ -1,5 +1,6 @@
 <template>
-  <div class="row mt-4">
+  <div class="row">
+    <load-or-error resource="/categories" @dataLoaded="handleData" />
     <div class="col-12 col-sm-3 col-lg-2 mb-4">
       <search-box
         :value="searchText"
@@ -37,9 +38,10 @@
 </template>
 
 <script>
-import searchBox from './../../components/searchBox.vue'
+import searchBox from '~/components/searchBox.vue'
+import LoadOrError from '~/components/loadOrError.vue'
 export default {
-  components: { searchBox },
+  components: { searchBox, LoadOrError },
   data() {
     return {
       searchText: '',
@@ -81,24 +83,6 @@ export default {
       this.setChildrenEqualHeight(this.$refs.equalHeight)
     }
   },
-  created() {
-    // TODO: share loader and error handling from default layout
-    if (!this.categories.length) {
-      this.$axios
-        // TODO: research - looks like strapi doesn't return children -> /langs/1/categories won't work
-        .get('/categories')
-        .then(({ data }) => {
-          // this.loaded = true
-          this.$store.commit('storeCategories', data)
-        })
-        .catch(() => {
-          // this.loadingError = true
-          // this.countdown = setInterval(() => {
-          //   this.seconds--
-          // }, 1000)
-        })
-    }
-  },
   mounted() {
     this.setChildrenEqualHeight(this.$refs.equalHeight)
     window.addEventListener('resize', () => {
@@ -110,6 +94,9 @@ export default {
   methods: {
     runFilter() {
       this.runFilterAnyway = true
+    },
+    handleData(categories) {
+      this.$store.commit('storeCategories', categories)
     },
   },
 }
